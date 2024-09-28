@@ -1,0 +1,20 @@
+{
+  "name": "cine",
+  "version": "1.0.0",
+  "type": "module", 
+  "description": "back end cine",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "watch": "node --watch server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "mongodb": "^6.9.0",
+    "mongoose": "^8.7.0"
+  }
+}
