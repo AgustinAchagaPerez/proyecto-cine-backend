@@ -7,6 +7,7 @@ import Room from './models/Room.js';
 import Movie from './models/Movie.js';
 import Showtime from './models/Showtime.js';
 import Seat from './models/Seat.js';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ mongoose.connect(process.env.MONGO_URI, {})
 
 // Middleware para parsear JSON
 app.use(bodyParser.json());
+app.use(cors());
 
 // ============================
 // CRUD for Cinemas
@@ -184,7 +186,7 @@ app.delete('/butacas/:id', async (req, res) => {
   try {
     const seat = await Seat.findByIdAndDelete(req.params.id);
     if (!seat) return res.status(404).json({ message: 'Seat not found' });
-    
+
     // Remover la butaca de la función
     await Showtime.findByIdAndUpdate(seat.showtime, { $pull: { seats: seat._id } });
 
@@ -205,7 +207,7 @@ app.post('/funciones', async (req, res) => {
 
     // Actualizar la sala para agregar la función creada
     await Room.findByIdAndUpdate(req.body.room, { $push: { showtimes: showtime._id } });
-    
+
     // Actualizar la película para agregar la función
     await Movie.findByIdAndUpdate(req.body.movie, { $push: { showtimes: showtime._id } });
 
@@ -248,7 +250,7 @@ app.delete('/funciones/:id', async (req, res) => {
   try {
     const showtime = await Showtime.findByIdAndDelete(req.params.id);
     if (!showtime) return res.status(404).json({ message: 'Showtime not found' });
-    
+
     // Remover la función de la sala
     await Room.findByIdAndUpdate(showtime.room, { $pull: { showtimes: showtime._id } });
 
@@ -309,7 +311,7 @@ app.delete('/salas/:id', async (req, res) => {
   try {
     const room = await Room.findByIdAndDelete(req.params.id);
     if (!room) return res.status(404).json({ message: 'Room not found' });
-    
+
     // Remover la sala del cine
     await Cinema.findByIdAndUpdate(room.cinema, { $pull: { rooms: room._id } });
 
@@ -324,6 +326,24 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// Endpoint para obtener funciones y sus butacas
+app.get('/funciones-y-butacas', async (req, res) => {
+  try {
+    const showtimes = await Showtime.find()
+      .populate('seats') // Pobla las butacas asociadas a cada función
+      .populate('movie')  // Opcional: para incluir el título de la película
+      .populate({
+        path: 'room',
+        populate: { path: 'cinema' } // Incluye el nombre del cine
+      });
+
+    res.status(200).json(showtimes);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching showtimes and seats' });
+  }
+});
+
 
 
 // Limpiar la base de datos (opcional)
