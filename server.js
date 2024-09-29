@@ -22,6 +22,16 @@ mongoose.connect(process.env.MONGO_URI, {})
 app.use(bodyParser.json());
 app.use(cors());
 
+// Función para formatear la fecha a la hora local en Buenos Aires
+const formatDateToLocal = (utcDate) => {
+  return new Date(utcDate).toLocaleString('es-AR', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+};
+
 // ============================
 // CRUD for Cinemas
 // ============================
@@ -328,15 +338,7 @@ app.listen(PORT, () => {
 });
 
 
-// Función para formatear la fecha a la hora local en Buenos Aires
-const formatDateToLocal = (utcDate) => {
-  return new Date(utcDate).toLocaleString('es-AR', {
-    timeZone: 'America/Argentina/Buenos_Aires',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-};
+
 
 // Limpiar la base de datos (opcional)
 app.delete('/clean-database', async (req, res) => {
