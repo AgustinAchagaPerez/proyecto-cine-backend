@@ -1,20 +1,10 @@
 import mongoose from 'mongoose';
 
 const seatSchema = new mongoose.Schema({
-  number: {
-    type: String,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['available', 'occupied'], // Status of the seat
-    default: 'available'
-  },
-  showtime: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Showtime', // Reference to the showtime it belongs to
-    required: true
-  }
+  number: { type: Number, required: true },
+  isOccupied: { type: Boolean, default: false }, // Estado de ocupación
+  showtime: { type: mongoose.Schema.Types.ObjectId, ref: 'Showtime', required: true }, // Relación con horario de proyección
+  room: { type: mongoose.Schema.Types.ObjectId, ref: 'Room', required: true } // Nueva relación con la sala
 });
 
 export default mongoose.model('Seat', seatSchema);
