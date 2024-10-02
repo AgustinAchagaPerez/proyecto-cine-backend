@@ -7,4 +7,4 @@ const seatSchema = new mongoose.Schema({
   room: { type: mongoose.Schema.Types.ObjectId, ref: 'Room', required: true } // Nueva relación con la sala
 });
 
-export default mongoose.model('Seat', seatSchema);
+
