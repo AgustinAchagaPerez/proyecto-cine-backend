@@ -101,6 +101,92 @@ app.post('/cines/:id/salas', async (req, res) => {
   }
 });
 
+// ============================
+// CRUD for Showtimes (Horarios) in Rooms
+// ============================
+
+// Crear un horario en una sala específica de un cine
+app.post('/cines/:id/salas/:roomId/horarios', async (req, res) => {
+  try {
+    // Buscar el cine por su ID
+    const cinema = await Cinema.findById(req.params.id);
+    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
+
+    // Buscar la sala por su roomId
+    const room = cinema.salas.id(req.params.roomId);
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+
+    // Agregar el nuevo horario al array de horarios de la sala
+    room.horarios.push(req.body.horario); // El cuerpo del request debe incluir "horario", ej. "16:00".
+
+    // Guardar el cine actualizado
+    await cinema.save();
+
+    res.status(201).json(room.horarios); // Devolvemos la lista actualizada de horarios
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Obtener todos los horarios de una sala específica
+app.get('/cines/:id/salas/:roomId/horarios', async (req, res) => {
+  try {
+    const cinema = await Cinema.findById(req.params.id);
+    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
+
+    const room = cinema.salas.id(req.params.roomId);
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+
+    res.json(room.horarios); // Devolvemos todos los horarios de la sala
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Actualizar un horario específico de una sala
+app.put('/cines/:id/salas/:roomId/horarios/:horarioId', async (req, res) => {
+  try {
+    const cinema = await Cinema.findById(req.params.id);
+    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
+
+    const room = cinema.salas.id(req.params.roomId);
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+
+    const horarioIndex = room.horarios.findIndex(horario => horario._id == req.params.horarioId);
+    if (horarioIndex === -1) return res.status(404).json({ message: 'Horario not found' });
+
+    // Actualizar el horario en la posición correspondiente
+    room.horarios[horarioIndex] = req.body.horario;
+
+    await cinema.save();
+    res.json(room.horarios); // Devolvemos la lista actualizada de horarios
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Eliminar un horario de una sala
+app.delete('/cines/:id/salas/:roomId/horarios/:horarioId', async (req, res) => {
+  try {
+    const cinema = await Cinema.findById(req.params.id);
+    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
+
+    const room = cinema.salas.id(req.params.roomId);
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+
+    const horarioIndex = room.horarios.findIndex(horario => horario._id == req.params.horarioId);
+    if (horarioIndex === -1) return res.status(404).json({ message: 'Horario not found' });
+
+    // Eliminar el horario en la posición correspondiente
+    room.horarios.splice(horarioIndex, 1);
+
+    await cinema.save();
+    res.status(204).send(); // Respuesta exitosa sin contenido
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Obtener todas las salas de un cine
 app.get('/cines/:id/salas', async (req, res) => {
   try {
