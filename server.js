@@ -23,117 +23,232 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // CRUD para Cine
+
+// Crear un nuevo cine
 app.post('/cines', async (req, res) => {
+  const { nombre, ubicacion } = req.body;
+
+  console.log(req.body); // Para verificar los datos recibidos
+
+  const nuevoCine = new Cine({ nombre, ubicacion });
+
   try {
-    const cine = new Cine(req.body);
-    await cine.save();
-    res.status(201).json(cine);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    const cineGuardado = await nuevoCine.save();
+    res.status(201).json(cineGuardado);
+  } catch (error) {
+    res.status(400).json({ message: 'Error al crear el cine', error });
   }
 });
 
+// Obtener todos los cines
 app.get('/cines', async (req, res) => {
   try {
     const cines = await Cine.find().populate('salas');
     res.json(cines);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener los cines', error });
   }
 });
 
+// Obtener un cine específico por ID
 app.get('/cines/:id', async (req, res) => {
   try {
     const cine = await Cine.findById(req.params.id).populate('salas');
     if (!cine) return res.status(404).json({ message: 'Cine no encontrado' });
     res.json(cine);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener cine', error });
   }
 });
 
+// Actualizar un cine específico por ID
 app.put('/cines/:id', async (req, res) => {
   try {
-    const cine = await Cine.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!cine) return res.status(404).json({ message: 'Cine no encontrado' });
-    res.json(cine);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    const cineActualizado = await Cine.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!cineActualizado) return res.status(404).json({ message: 'Cine no encontrado' });
+    res.json(cineActualizado);
+  } catch (error) {
+    res.status(400).json({ message: 'Error al actualizar el cine', error });
   }
 });
 
+// Eliminar un cine y sus salas
 app.delete('/cines/:id', async (req, res) => {
   try {
-    const cine = await Cine.findByIdAndDelete(req.params.id);
-    if (!cine) return res.status(404).json({ message: 'Cine no encontrado' });
-    res.json({ message: 'Cine eliminado' });
+    const cine = await Cine.findById(req.params.id);
+    if (!cine) {
+      return res.status(404).json({ message: 'Cine no encontrado' });
+    }
+
+    // Desvincular y eliminar todas las salas asociadas
+    await Sala.deleteMany({ cine: cine._id });
+
+    // Eliminar el cine
+    await Cine.findByIdAndDelete(req.params.id);
+   
+    res.status(200).send({ message: 'Cine eliminado con éxito' });
+
+
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 });
 
 // CRUD para Sala
-app.post('/cines/:cineId/salas', async (req, res) => {
+
+// Crear una nueva sala
+app.post('/salas', async (req, res) => {
+  const { numero_sala, butacas, cine, pelicula } = req.body;
+
+  console.log(req.body); // Para verificar los datos recibidos
+
+  const nuevaSala = new Sala({
+    numero_sala,
+    butacas,
+    cine, // Vincula el cine
+  });
+
   try {
-    const sala = new Sala({ ...req.body, cine: req.params.cineId });
-    await sala.save();
+    const salaGuardada = await nuevaSala.save();
 
-    // Agregar la sala al cine
-    await Cine.findByIdAndUpdate(req.params.cineId, { $push: { salas: sala._id } });
+    // Si se proporciona una película, vincúlala
+    if (pelicula) {
+      await Pelicula.findByIdAndUpdate(
+        pelicula,
+        { $addToSet: { salas: salaGuardada._id } } // Evita duplicados
+      );
+      // Actualiza la sala para incluir la película
+      await Sala.findByIdAndUpdate(salaGuardada._id, { pelicula });
+    }
 
-    // Agregar la sala a la película
-    await Pelicula.findByIdAndUpdate(req.body.pelicula, { $push: { salas: sala._id } });
+    // Agregar la sala al cine correspondiente
+    await Cine.findByIdAndUpdate(cine, { $push: { salas: salaGuardada._id } });
 
-    res.status(201).json(sala);
+    res.status(201).json(salaGuardada);
+  } catch (error) {
+    res.status(400).json({ message: 'Error al crear la sala', error });
+  }
+});
+
+// Actualizar una sala
+app.put('/salas/:id', async (req, res) => {
+  try {
+    const { numero_sala, butacas, pelicula, cine } = req.body;
+    const salaActualizada = await Sala.findByIdAndUpdate(
+      req.params.id,
+      { numero_sala, butacas, cine },
+      { new: true }
+    );
+
+    // Si se proporciona una película, actualiza el vínculo
+    if (pelicula) {
+      await Pelicula.findByIdAndUpdate(
+        pelicula,
+        { $addToSet: { salas: salaActualizada._id } } // Evita duplicados
+      );
+      await Sala.findByIdAndUpdate(salaActualizada._id, { pelicula });
+    }
+
+    res.status(200).json(salaActualizada);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
+// Eliminar una sala y desvincularla de la película
+app.delete('/salas/:id', async (req, res) => {
+  try {
+    const sala = await Sala.findById(req.params.id);
+    if (!sala) {
+      return res.status(404).json({ message: 'Sala no encontrada' });
+    }
+
+    // Eliminar la sala
+    await Sala.findByIdAndDelete(req.params.id);
+
+    // Desvincular la sala de la película
+    await Pelicula.findByIdAndUpdate(
+      sala.pelicula,
+      { $pull: { salas: sala._id } } // Elimina la sala de la película
+    );
+
+    // Desvincular la sala del cine
+    await Cine.findByIdAndUpdate(
+      sala.cine,
+      { $pull: { salas: sala._id } } // Elimina la sala del cine
+    );
+
+    res.status(200).send({ message: 'Sala de Cine eliminada con éxito' });
+
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 
 app.get('/salas', async (req, res) => {
   try {
-    const salas = await Sala.find().populate('pelicula horarios');
+    const salas = await Sala.find().populate('pelicula').populate('horarios');
     res.json(salas);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener las salas', error });
   }
 });
 
 app.get('/salas/:id', async (req, res) => {
   try {
-    const sala = await Sala.findById(req.params.id).populate('pelicula horarios');
+    const sala = await Sala.findById(req.params.id).populate('pelicula').populate('horarios');
     if (!sala) return res.status(404).json({ message: 'Sala no encontrada' });
     res.json(sala);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener la sala', error });
   }
 });
 
 app.put('/salas/:id', async (req, res) => {
   try {
-    const sala = await Sala.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!sala) return res.status(404).json({ message: 'Sala no encontrada' });
-    res.json(sala);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    const salaActualizada = await Sala.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!salaActualizada) return res.status(404).json({ message: 'Sala no encontrada' });
+
+    res.json(salaActualizada);
+  } catch (error) {
+    res.status(400).json({ message: 'Error al actualizar la sala', error });
   }
 });
 
 app.delete('/salas/:id', async (req, res) => {
   try {
-    const sala = await Sala.findByIdAndDelete(req.params.id);
-    if (!sala) return res.status(404).json({ message: 'Sala no encontrada' });
+    const salaEliminada = await Sala.findByIdAndDelete(req.params.id);
+    if (!salaEliminada) return res.status(404).json({ message: 'Sala no encontrada' });
+
+    // Eliminar la sala del cine correspondiente
+    await Cine.findByIdAndUpdate(salaEliminada.cine, { $pull: { salas: salaEliminada._id } });
+
     res.json({ message: 'Sala eliminada' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar la sala', error });
   }
 });
 
 // CRUD para Pelicula
+
+// Crear una nueva película
 app.post('/peliculas', async (req, res) => {
   try {
-    const pelicula = new Pelicula(req.body);
+    const { titulo, director, duracion, genero } = req.body;
+
+    if (!titulo || !director || !duracion || !genero) {
+      return res.status(400).json({ message: 'Todos los campos son obligatorios' });
+    }
+
+    console.log(req.body); // Para verificar los datos recibidos
+
+    const pelicula = new Pelicula({
+      titulo,
+      director,
+      duracion,
+      genero,
+    });
+
     await pelicula.save();
     res.status(201).json(pelicula);
   } catch (err) {
@@ -141,99 +256,156 @@ app.post('/peliculas', async (req, res) => {
   }
 });
 
-app.get('/peliculas', async (req, res) => {
+// Actualizar una película
+app.put('/peliculas/:id', async (req, res) => {
   try {
-    const peliculas = await Pelicula.find().populate('salas');
-    res.json(peliculas);
+    const { titulo, director, duracion, genero } = req.body;
+    const peliculaActualizada = await Pelicula.findByIdAndUpdate(
+      req.params.id,
+      { titulo, director, duracion, genero },
+      { new: true }
+    );
+
+    if (!peliculaActualizada) {
+      return res.status(404).json({ message: 'Película no encontrada' });
+    }
+
+    res.status(200).json(peliculaActualizada);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 });
 
+// Eliminar una película y sus salas relacionadas
+app.delete('/peliculas/:id', async (req, res) => {
+  try {
+    const pelicula = await Pelicula.findById(req.params.id);
+    if (!pelicula) {
+      return res.status(404).json({ message: 'Película no encontrada' });
+    }
+
+    // Eliminar la película
+    await Pelicula.findByIdAndDelete(req.params.id);
+
+    // Desvincular todas las salas relacionadas
+    await Sala.updateMany(
+      { pelicula: pelicula._id },
+      { $unset: { pelicula: "" } } // Elimina el campo película de las salas
+    );
+
+    res.status(200).send({ message: 'Película eliminada con éxito' });
+    
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Obtener TODAS las peliculas
+app.get('/peliculas', async (req, res) => {
+  try {
+    const peliculas = await Pelicula.find().populate('salas');
+
+    if (!peliculas) return res.status(404).json({ message: 'Película no encontrada' });
+
+    res.json(peliculas);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener películas', error });
+  }
+});
+
+
+// Obtener una película específica por ID
 app.get('/peliculas/:id', async (req, res) => {
   try {
     const pelicula = await Pelicula.findById(req.params.id).populate('salas');
     if (!pelicula) return res.status(404).json({ message: 'Película no encontrada' });
     res.json(pelicula);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-app.put('/peliculas/:id', async (req, res) => {
-  try {
-    const pelicula = await Pelicula.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!pelicula) return res.status(404).json({ message: 'Película no encontrada' });
-    res.json(pelicula);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
-app.delete('/peliculas/:id', async (req, res) => {
-  try {
-    const pelicula = await Pelicula.findByIdAndDelete(req.params.id);
-    if (!pelicula) return res.status(404).json({ message: 'Película no encontrada' });
-    res.json({ message: 'Película eliminada' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener película', error });
   }
 });
 
 // CRUD para Horario
-app.post('/salas/:salaId/horarios', async (req, res) => {
-  try {
-    const horario = new Horario({ ...req.body, sala: req.params.salaId });
-    await horario.save();
 
-    // Agregar el horario a la sala
-    await Sala.findByIdAndUpdate(req.params.salaId, { $push: { horarios: horario._id } });
-    res.status(201).json(horario);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+// Crear un nuevo horario
+app.post('/horarios', async (req, res) => {
+  const { sala, hora } = req.body;
+
+  // Verifica que se proporcionen los campos requeridos
+  if (!sala || !hora) {
+    return res.status(400).json({ message: 'Los campos sala y time son obligatorios' });
+  }
+
+  console.log(req.body); // Para verificar los datos recibidos
+
+  const nuevoHorario = new Horario({ sala, hora });
+
+  try {
+    const horarioGuardado = await nuevoHorario.save();
+
+    // Vincular el horario a la sala
+    await Sala.findByIdAndUpdate(sala, { $push: { horarios: horarioGuardado._id } });
+
+    res.status(201).json(horarioGuardado);
+  } catch (error) {
+    res.status(400).json({ message: 'Error al crear el horario', error });
   }
 });
 
+// Obtener todos los horarios
 app.get('/horarios', async (req, res) => {
   try {
     const horarios = await Horario.find().populate('sala');
     res.json(horarios);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener los horarios', error });
   }
 });
 
+// Obtener un horario específico por ID
 app.get('/horarios/:id', async (req, res) => {
   try {
     const horario = await Horario.findById(req.params.id).populate('sala');
     if (!horario) return res.status(404).json({ message: 'Horario no encontrado' });
     res.json(horario);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener horario', error });
   }
 });
 
+// Actualizar un horario
 app.put('/horarios/:id', async (req, res) => {
   try {
-    const horario = await Horario.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!horario) return res.status(404).json({ message: 'Horario no encontrado' });
-    res.json(horario);
+    const horarioActualizado = await Horario.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!horarioActualizado) return res.status(404).json({ message: 'Horario no encontrado' });
+    res.json(horarioActualizado);
+  } catch (error) {
+    res.status(400).json({ message: 'Error al actualizar el horario', error });
+  }
+});
+
+// Eliminar un horario
+app.delete('/horarios/:id', async (req, res) => {
+  try {
+    const horario = await Horario.findById(req.params.id);
+    if (!horario) {
+      return res.status(404).json({ message: 'Horario no encontrado' });
+    }
+
+    // Desvincular el horario de la sala
+    await Sala.findByIdAndUpdate(horario.sala, { $pull: { horarios: horario._id } });
+
+    // Eliminar el horario
+    await Horario.findByIdAndDelete(req.params.id);
+
+    res.status(200).send({ message: 'Horario eliminado con éxito' });
+
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-app.delete('/horarios/:id', async (req, res) => {
-  try {
-    const horario = await Horario.findByIdAndDelete(req.params.id);
-    if (!horario) return res.status(404).json({ message: 'Horario no encontrado' });
-    res.json({ message: 'Horario eliminado' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
 // Iniciar el servidor
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
