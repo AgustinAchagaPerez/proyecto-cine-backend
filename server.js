@@ -1,13 +1,17 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
-import Cinema from './models/Cinema.js'; // Asegúrate de que el modelo esté definido correctamente
 import cors from 'cors';
+import Cine from './models/Cine.js';
+import Sala from './models/Sala.js';
+import Pelicula from './models/Pelicula.js';
+import Horario from './models/Horario.js';
 
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGO_URI, {})
@@ -18,15 +22,12 @@ mongoose.connect(process.env.MONGO_URI, {})
 app.use(bodyParser.json());
 app.use(cors());
 
-// ============================
-// CRUD for Cinemas
-// ============================
-
+// CRUD para Cine
 app.post('/cines', async (req, res) => {
   try {
-    const cinema = new Cinema(req.body);
-    await cinema.save();
-    res.status(201).json(cinema);
+    const cine = new Cine(req.body);
+    await cine.save();
+    res.status(201).json(cine);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -34,8 +35,8 @@ app.post('/cines', async (req, res) => {
 
 app.get('/cines', async (req, res) => {
   try {
-    const cinemas = await Cinema.find();
-    res.json(cinemas);
+    const cines = await Cine.find().populate('salas');
+    res.json(cines);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -43,9 +44,9 @@ app.get('/cines', async (req, res) => {
 
 app.get('/cines/:id', async (req, res) => {
   try {
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-    res.json(cinema);
+    const cine = await Cine.findById(req.params.id).populate('salas');
+    if (!cine) return res.status(404).json({ message: 'Cine no encontrado' });
+    res.json(cine);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -53,9 +54,9 @@ app.get('/cines/:id', async (req, res) => {
 
 app.put('/cines/:id', async (req, res) => {
   try {
-    const cinema = await Cinema.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-    res.json(cinema);
+    const cine = await Cine.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!cine) return res.status(404).json({ message: 'Cine no encontrado' });
+    res.json(cine);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -63,201 +64,176 @@ app.put('/cines/:id', async (req, res) => {
 
 app.delete('/cines/:id', async (req, res) => {
   try {
-    const cinema = await Cinema.findByIdAndDelete(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-    res.status(204).send();
+    const cine = await Cine.findByIdAndDelete(req.params.id);
+    if (!cine) return res.status(404).json({ message: 'Cine no encontrado' });
+    res.json({ message: 'Cine eliminado' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// ============================
-// CRUD for Rooms and Movies in Cinemas
-// ============================
-
-// Agregar una sala a un cine
-app.post('/cines/:id/salas', async (req, res) => {
+// CRUD para Sala
+app.post('/cines/:cineId/salas', async (req, res) => {
   try {
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
+    const sala = new Sala({ ...req.body, cine: req.params.cineId });
+    await sala.save();
 
-    const room = {
-      numero_sala: req.body.numero_sala,
-      butacas: req.body.butacas || 100,
-      pelicula: {
-        titulo: req.body.pelicula.titulo,
-        director: req.body.pelicula.director,
-        duracion: req.body.pelicula.duracion,
-        genero: req.body.pelicula.genero
-      },
-      horarios: req.body.horarios
-    };
+    // Agregar la sala al cine
+    await Cine.findByIdAndUpdate(req.params.cineId, { $push: { salas: sala._id } });
 
-    cinema.salas.push(room);
-    await cinema.save();
-    res.status(201).json(cinema);
+    // Agregar la sala a la película
+    await Pelicula.findByIdAndUpdate(req.body.pelicula, { $push: { salas: sala._id } });
+
+    res.status(201).json(sala);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// ============================
-// CRUD for Showtimes (Horarios) in Rooms
-// ============================
 
-// Crear un horario en una sala específica de un cine
-app.post('/cines/:id/salas/:roomId/horarios', async (req, res) => {
+app.get('/salas', async (req, res) => {
   try {
-    // Buscar el cine por su ID
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-
-    // Buscar la sala por su roomId
-    const room = cinema.salas.id(req.params.roomId);
-    if (!room) return res.status(404).json({ message: 'Room not found' });
-
-    // Agregar el nuevo horario al array de horarios de la sala
-    room.horarios.push(req.body.horario); // El cuerpo del request debe incluir "horario", ej. "16:00".
-
-    // Guardar el cine actualizado
-    await cinema.save();
-
-    res.status(201).json(room.horarios); // Devolvemos la lista actualizada de horarios
+    const salas = await Sala.find().populate('pelicula horarios');
+    res.json(salas);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Obtener todos los horarios de una sala específica
-app.get('/cines/:id/salas/:roomId/horarios', async (req, res) => {
+app.get('/salas/:id', async (req, res) => {
   try {
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-
-    const room = cinema.salas.id(req.params.roomId);
-    if (!room) return res.status(404).json({ message: 'Room not found' });
-
-    res.json(room.horarios); // Devolvemos todos los horarios de la sala
+    const sala = await Sala.findById(req.params.id).populate('pelicula horarios');
+    if (!sala) return res.status(404).json({ message: 'Sala no encontrada' });
+    res.json(sala);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Actualizar un horario específico de una sala
-app.put('/cines/:id/salas/:roomId/horarios/:horarioId', async (req, res) => {
+app.put('/salas/:id', async (req, res) => {
   try {
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-
-    const room = cinema.salas.id(req.params.roomId);
-    if (!room) return res.status(404).json({ message: 'Room not found' });
-
-    const horarioIndex = room.horarios.findIndex(horario => horario._id == req.params.horarioId);
-    if (horarioIndex === -1) return res.status(404).json({ message: 'Horario not found' });
-
-    // Actualizar el horario en la posición correspondiente
-    room.horarios[horarioIndex] = req.body.horario;
-
-    await cinema.save();
-    res.json(room.horarios); // Devolvemos la lista actualizada de horarios
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Eliminar un horario de una sala
-app.delete('/cines/:id/salas/:roomId/horarios/:horarioId', async (req, res) => {
-  try {
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-
-    const room = cinema.salas.id(req.params.roomId);
-    if (!room) return res.status(404).json({ message: 'Room not found' });
-
-    const horarioIndex = room.horarios.findIndex(horario => horario._id == req.params.horarioId);
-    if (horarioIndex === -1) return res.status(404).json({ message: 'Horario not found' });
-
-    // Eliminar el horario en la posición correspondiente
-    room.horarios.splice(horarioIndex, 1);
-
-    await cinema.save();
-    res.status(204).send(); // Respuesta exitosa sin contenido
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Obtener todas las salas de un cine
-app.get('/cines/:id/salas', async (req, res) => {
-  try {
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-    res.json(cinema.salas);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Obtener una sala específica de un cine
-app.get('/cines/:id/salas/:roomId', async (req, res) => {
-  try {
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-
-    const room = cinema.salas.id(req.params.roomId);
-    if (!room) return res.status(404).json({ message: 'Room not found' });
-    res.json(room);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Actualizar una sala de un cine
-app.put('/cines/:id/salas/:roomId', async (req, res) => {
-  try {
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
-
-    const room = cinema.salas.id(req.params.roomId);
-    if (!room) return res.status(404).json({ message: 'Room not found' });
-
-    room.set(req.body);
-    await cinema.save();
-    res.json(room);
+    const sala = await Sala.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!sala) return res.status(404).json({ message: 'Sala no encontrada' });
+    res.json(sala);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// Eliminar una sala de un cine
-app.delete('/cines/:id/salas/:roomId', async (req, res) => {
+app.delete('/salas/:id', async (req, res) => {
   try {
-    const cinema = await Cinema.findById(req.params.id);
-    if (!cinema) return res.status(404).json({ message: 'Cinema not found' });
+    const sala = await Sala.findByIdAndDelete(req.params.id);
+    if (!sala) return res.status(404).json({ message: 'Sala no encontrada' });
+    res.json({ message: 'Sala eliminada' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
-    const room = cinema.salas.id(req.params.roomId);
-    if (!room) return res.status(404).json({ message: 'Room not found' });
+// CRUD para Pelicula
+app.post('/peliculas', async (req, res) => {
+  try {
+    const pelicula = new Pelicula(req.body);
+    await pelicula.save();
+    res.status(201).json(pelicula);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 
-    room.remove();
-    await cinema.save();
-    res.status(204).send();
+app.get('/peliculas', async (req, res) => {
+  try {
+    const peliculas = await Pelicula.find().populate('salas');
+    res.json(peliculas);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.get('/peliculas/:id', async (req, res) => {
+  try {
+    const pelicula = await Pelicula.findById(req.params.id).populate('salas');
+    if (!pelicula) return res.status(404).json({ message: 'Película no encontrada' });
+    res.json(pelicula);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/peliculas/:id', async (req, res) => {
+  try {
+    const pelicula = await Pelicula.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!pelicula) return res.status(404).json({ message: 'Película no encontrada' });
+    res.json(pelicula);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+app.delete('/peliculas/:id', async (req, res) => {
+  try {
+    const pelicula = await Pelicula.findByIdAndDelete(req.params.id);
+    if (!pelicula) return res.status(404).json({ message: 'Película no encontrada' });
+    res.json({ message: 'Película eliminada' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// CRUD para Horario
+app.post('/salas/:salaId/horarios', async (req, res) => {
+  try {
+    const horario = new Horario({ ...req.body, sala: req.params.salaId });
+    await horario.save();
+
+    // Agregar el horario a la sala
+    await Sala.findByIdAndUpdate(req.params.salaId, { $push: { horarios: horario._id } });
+    res.status(201).json(horario);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+app.get('/horarios', async (req, res) => {
+  try {
+    const horarios = await Horario.find().populate('sala');
+    res.json(horarios);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.get('/horarios/:id', async (req, res) => {
+  try {
+    const horario = await Horario.findById(req.params.id).populate('sala');
+    if (!horario) return res.status(404).json({ message: 'Horario no encontrado' });
+    res.json(horario);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/horarios/:id', async (req, res) => {
+  try {
+    const horario = await Horario.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!horario) return res.status(404).json({ message: 'Horario no encontrado' });
+    res.json(horario);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+app.delete('/horarios/:id', async (req, res) => {
+  try {
+    const horario = await Horario.findByIdAndDelete(req.params.id);
+    if (!horario) return res.status(404).json({ message: 'Horario no encontrado' });
+    res.json({ message: 'Horario eliminado' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 // Iniciar el servidor
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-});
-
-// Limpiar la base de datos (opcional)
-app.delete('/clean-database', async (req, res) => {
-  try {
-    await Cinema.deleteMany({});
-    res.status(200).send('Database cleaned');
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
 });
