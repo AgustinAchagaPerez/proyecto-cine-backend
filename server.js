@@ -155,6 +155,39 @@ app.put('/salas/:id', async (req, res) => {
   }
 });
 
+// Agregar una película existente a una sala que se creó sin asignarle pelicula!
+// con solo pasar por parametro los id y dejar vacio el body se actualiza!
+
+app.put('/salas/:salaId/pelicula/:peliculaId', async (req, res) => {
+  const { salaId, peliculaId } = req.params;
+
+  try {
+    // Verificar que la sala exista
+    const sala = await Sala.findById(salaId);
+    if (!sala) {
+      return res.status(404).json({ message: 'Sala no encontrada' });
+    }
+
+    // Verificar que la película exista
+    const pelicula = await Pelicula.findById(peliculaId);
+    if (!pelicula) {
+      return res.status(404).json({ message: 'Película no encontrada' });
+    }
+
+    // Vincular la película a la sala
+    sala.pelicula = peliculaId; // Actualiza el campo de la película en la sala
+    await sala.save();
+
+    // Agregar la sala a la lista de salas de la película
+    await Pelicula.findByIdAndUpdate(peliculaId, { $addToSet: { salas: salaId } });
+
+    res.status(200).json(sala);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al agregar la película a la sala', error });
+  }
+});
+
+
 // Eliminar una sala y desvincularla de la película
 app.delete('/salas/:id', async (req, res) => {
   try {
@@ -324,6 +357,20 @@ app.get('/peliculas/:id', async (req, res) => {
     res.status(500).json({ message: 'Error al obtener película', error });
   }
 });
+
+//Peticion especial para listar peliculas con sus salas y horarios
+app.get('/peliculas-con-salas-y-horarios', async (req, res) => {
+  try {
+    const peliculas = await Pelicula.find().populate({
+      path: 'salas',
+      populate: { path: 'horarios' }
+    });
+    res.json(peliculas);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener las películas con salas y horarios', error });
+  }
+});
+
 
 // CRUD para Horario
 
