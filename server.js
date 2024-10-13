@@ -154,36 +154,34 @@ app.put('/salas/:id', async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
-
-// Agregar una película existente a una sala que se creó sin asignarle pelicula!
-// con solo pasar por parametro los id y dejar vacio el body se actualiza!
-
+// Agregar una película existente a una sala
 app.put('/salas/:salaId/pelicula/:peliculaId', async (req, res) => {
   const { salaId, peliculaId } = req.params;
 
   try {
-    // Verificar que la sala exista
-    const sala = await Sala.findById(salaId);
-    if (!sala) {
-      return res.status(404).json({ message: 'Sala no encontrada' });
-    }
+      // Verificar que la sala exista
+      const sala = await Sala.findById(salaId);
+      if (!sala) {
+          return res.status(404).json({ message: 'Sala no encontrada' });
+      }
 
-    // Verificar que la película exista
-    const pelicula = await Pelicula.findById(peliculaId);
-    if (!pelicula) {
-      return res.status(404).json({ message: 'Película no encontrada' });
-    }
+      // Verificar que la película exista
+      const pelicula = await Pelicula.findById(peliculaId);
+      if (!pelicula) {
+          return res.status(404).json({ message: 'Película no encontrada' });
+      }
 
-    // Vincular la película a la sala
-    sala.pelicula = peliculaId; // Actualiza el campo de la película en la sala
-    await sala.save();
+      // Vincular la película a la sala
+      sala.pelicula = peliculaId; // Asegúrate de que el campo esté definido
+      const updatedSala = await sala.save(); // Guarda y obtiene el objeto actualizado
 
-    // Agregar la sala a la lista de salas de la película
-    await Pelicula.findByIdAndUpdate(peliculaId, { $addToSet: { salas: salaId } });
+      // Agregar la sala a la lista de salas de la película
+      await Pelicula.findByIdAndUpdate(peliculaId, { $addToSet: { salas: salaId } });
 
-    res.status(200).json(sala);
+      res.status(200).json(updatedSala); // Retorna el objeto actualizado
   } catch (error) {
-    res.status(500).json({ message: 'Error al agregar la película a la sala', error });
+      console.error(error); // Log para depuración
+      res.status(500).json({ message: 'Error al agregar la película a la sala', error: error.message });
   }
 });
 
