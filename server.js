@@ -369,7 +369,6 @@ app.get('/peliculas-con-salas-y-horarios', async (req, res) => {
   }
 });
 
-
 // CRUD para Horario
 
 // Crear un nuevo horario
