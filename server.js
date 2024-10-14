@@ -356,19 +356,6 @@ app.get('/peliculas/:id', async (req, res) => {
   }
 });
 
-//Peticion especial para listar peliculas con sus salas y horarios
-app.get('/peliculas-con-salas-y-horarios', async (req, res) => {
-  try {
-    const peliculas = await Pelicula.find().populate({
-      path: 'salas',
-      populate: { path: 'horarios' }
-    });
-    res.json(peliculas);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al obtener las películas con salas y horarios', error });
-  }
-});
-
 // CRUD para Horario
 
 // Crear un nuevo horario
@@ -377,7 +364,7 @@ app.post('/horarios', async (req, res) => {
 
   // Verifica que se proporcionen los campos requeridos
   if (!sala || !hora) {
-    return res.status(400).json({ message: 'Los campos sala y time son obligatorios' });
+    return res.status(400).json({ message: 'Los campos hora y id de sala son obligatorios' });
   }
 
   console.log(req.body); // Para verificar los datos recibidos
@@ -446,6 +433,44 @@ app.delete('/horarios/:id', async (req, res) => {
 
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+});
+
+//OTRAS RUTAS
+
+//Peticion especial para listar peliculas con sus salas y horarios
+app.get('/peliculas-con-salas-y-horarios', async (req, res) => {
+  try {
+    const peliculas = await Pelicula.find().populate({
+      path: 'salas',
+      populate: { path: 'horarios' }
+    });
+    res.json(peliculas);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener las películas con salas y horarios', error });
+  }
+});
+
+// Ruta para obtener horarios con detalles de cine y sala
+app.get('/horarios-con-detalles', async (req, res) => {
+  try {
+      const horarios = await Horario.find()
+          .populate({
+              path: 'sala', // Poblamos la sala
+              populate: [
+                  {
+                      path: 'cine' // Poblamos el cine dentro de la sala
+                  },
+                  {
+                      path: 'pelicula' // Poblamos la película dentro de la sala
+                  }
+              ]
+          });
+      
+      res.json(horarios); // Devolver los horarios como respuesta en formato JSON
+  } catch (error) {
+      console.error('Error al obtener los horarios:', error);
+      res.status(500).json({ error: 'Error al obtener los horarios' }); // Manejo de errores
   }
 });
 
