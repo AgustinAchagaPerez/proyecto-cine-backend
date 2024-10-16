@@ -474,6 +474,25 @@ app.get('/horarios-con-detalles', async (req, res) => {
   }
 });
 
+app.get('/cines-con-salas-peliculas-y-horarios', async (req, res) => {
+  try {
+      const cines = await Cine.find()
+          .populate({
+              path: 'salas',
+              populate: [
+                  { path: 'pelicula' },
+                  { path: 'horarios' }
+              ]
+          });
+      res.json(cines);
+  } catch (error) {
+      console.error('Error al obtener los cines:', error.message); // Muestra el error específico
+      res.status(500).json({ message: 'Error al obtener los cines' });
+  }
+});
+
+
+
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
