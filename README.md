@@ -22,9 +22,6 @@ Permite asociar múltiples horarios.
 c. Showtime.js:
 Representa un horario de una película en un cine específico.
 Incluye campos como fecha, cine, película, y disponibilidad.
-d. Reservation.js:
-Representa una reserva de butacas.
-Incluye información sobre el usuario, las butacas seleccionadas y el horario reservado.
 ## Rutas:
 a. Cines:
 Rutas para manejar las operaciones sobre los cines:
@@ -74,6 +71,10 @@ npm install
 Configurar la base de datos MongoDB en el archivo config.js.
 Iniciar el servidor:
 npm start
+Una vez realizados los pasos anteriores,se requiere también lo siguiente:
+tener una Base de Datos en MongoDB, obtener el string de conexión de la misma.
+crear un archivo .env en el cual se va a ingresar el string de conexión de la base de datos MongoDB, como asi tambien el puerto en el que va a correr la misma desde el localhost (tu computadora)
+
 ## Explicación del Flujo
 Gestión de Cines: El administrador puede agregar, editar o eliminar cines a través de las rutas definidas.
 Gestión de Películas: Permite al administrador añadir nuevas películas y asociarlas con horarios.
@@ -82,6 +83,11 @@ Reservas de Butacas: Los usuarios pueden realizar reservas de butacas a través 
 ## Notas Técnicas:
 Asegúrate de tener MongoDB corriendo localmente o utilizar un servicio en la nube como MongoDB Atlas.
 Para depurar y probar las rutas, puedes utilizar herramientas como Postman.
+## Mejoras a futuro:
+Creacion de un archivo de reservas pensado de la siguiente manera:
+Reservation.js:
+Representa una reserva de butacas.
+Incluye información sobre el usuario, las butacas seleccionadas y el horario reservado.
 ## Contribuciones:
 Si deseas contribuir a este proyecto, por favor haz un fork del repositorio y envía un pull request.
 
