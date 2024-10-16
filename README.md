@@ -28,7 +28,6 @@ Representa un horario de una película en un cine específico.
 Incluye campos como fecha, cine, película, y disponibilidad.
 ## Rutas:
 Cines:
---
 Rutas para manejar las operaciones sobre los cines:
 GET /cines: Obtener la lista de cines.
 POST /cines: Crear un nuevo cine.
@@ -36,7 +35,6 @@ PUT /cines/:id: Actualizar un cine existente.
 DELETE /cines/:id: Eliminar un cine.
 
 Películas:
---
 Rutas para manejar las operaciones sobre las películas:
 GET /peliculas: Obtener la lista de películas.
 POST /peliculas: Crear una nueva película.
@@ -44,7 +42,6 @@ PUT /peliculas/:id: Actualizar una película existente.
 DELETE /peliculas/:id: Eliminar una película.
 
 Horarios:
---
 Rutas para manejar las operaciones sobre los horarios:
 GET /horarios: Obtener la lista de horarios.
 POST /horarios: Crear un nuevo horario.
@@ -52,7 +49,6 @@ PUT /horarios/:id: Actualizar un horario existente.
 DELETE /horarios/:id: Eliminar un horario.
 
 Reservas:
---
 Rutas para manejar las operaciones sobre reservas:
 GET /reservas: Obtener la lista de reservas.
 POST /reservas: Crear una nueva reserva.
