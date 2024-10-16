@@ -12,18 +12,15 @@ Estructura de Carpetas:
 /middleware: Contiene middlewares personalizados para manejar errores y validar solicitudes.
 ## Modelos de Datos:
 Cinema.js
---
 Representa un cine en la base de datos.
 Incine las relaciones con las películas y horarios.
 
 Movie.js:
---
 Representa una película.
 Incluye campos como título, duración, y tráiler.
 Permite asociar múltiples horarios.
 
 Showtime.js:
---
 Representa un horario de una película en un cine específico.
 Incluye campos como fecha, cine, película, y disponibilidad.
 ## Rutas:
