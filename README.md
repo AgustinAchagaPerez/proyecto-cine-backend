@@ -1,9 +1,8 @@
 # proyecto-cine-backend
+## Descripción:
 Trabajo conjunto, con Front de otro repositorio complementario. 
 Este proyecto es la API backend para un sistema de reserva de butacas en cines. Permite gestionar cines, películas, horarios y reservas a través de operaciones CRUD (Crear, Leer, Actualizar y Eliminar). El backend está construido con Node.js y Express, y utiliza MongoDB como base de datos.
---
-
-Estructura del Proyecto
+## Estructura del Proyecto:
 El proyecto está organizado en varias carpetas y archivos, cada uno con una función específica:
 Estructura de Carpetas
 /models: Contiene los modelos de datos de Mongoose que representan las colecciones en la base de datos.
@@ -11,9 +10,7 @@ Estructura de Carpetas
 /controllers: Contiene la lógica de negocio que maneja las operaciones de las rutas.
 /config: Incluye la configuración de la conexión a la base de datos y otras configuraciones necesarias.
 /middleware: Contiene middlewares personalizados para manejar errores y validar solicitudes.
---
-
-Modelos de Datos:
+## Modelos de Datos:
 a. Cinema.js:
 Representa un cine en la base de datos.
 Incluye campos como nombre, ubicación, y salas.
@@ -28,8 +25,7 @@ Incluye campos como fecha, cine, película, y disponibilidad.
 d. Reservation.js:
 Representa una reserva de butacas.
 Incluye información sobre el usuario, las butacas seleccionadas y el horario reservado.
-
-Rutas
+## Rutas:
 a. Cines:
 Rutas para manejar las operaciones sobre los cines:
 GET /cines: Obtener la lista de cines.
@@ -53,21 +49,39 @@ Rutas para manejar las operaciones sobre reservas:
 GET /reservas: Obtener la lista de reservas.
 POST /reservas: Crear una nueva reserva.
 DELETE /reservas/:id: Eliminar una reserva.
-
-Middleware:
+## Middleware:
 ErrorHandler.js: Middleware para manejar errores de manera centralizada y enviar respuestas adecuadas al cliente.
 Validation.js: Middleware para validar los datos de entrada en las solicitudes.
---
-Tecnologías Utilizadas:
+## Tecnologías Utilizadas:
 Node.js: Entorno de ejecución para JavaScript del lado del servidor.
 Express.js: Framework para construir aplicaciones web en Node.js.
 MongoDB: Base de datos NoSQL utilizada para almacenar datos de manera flexible.
 Mongoose: Biblioteca de modelado de objetos MongoDB para Node.js.
 cors: Middleware para habilitar CORS (Cross-Origin Resource Sharing).
----
-Explicación del Flujo
+
+## Explicación del Flujo:
 Gestión de Cines: El administrador puede agregar, editar o eliminar cines a través de las rutas definidas.
 Gestión de Películas: Permite al administrador añadir nuevas películas y asociarlas con horarios.
 Gestión de Horarios: Los horarios se pueden crear y modificar según la disponibilidad de las salas y películas.
 Reservas de Butacas: Los usuarios pueden realizar reservas de butacas a través de la API, asegurando que solo se puedan reservar asientos disponibles.
---
+## Instalación y Ejecución:
+Clonar el repositorio:
+git clone https://github.com/AgustinAchagaPerez/proyecto-cine-backend.git
+Navegar a la carpeta del proyecto:
+cd proyecto-cine-backend
+Instalar las dependencias:
+npm install
+Configurar la base de datos MongoDB en el archivo config.js.
+Iniciar el servidor:
+npm start
+## Explicación del Flujo
+Gestión de Cines: El administrador puede agregar, editar o eliminar cines a través de las rutas definidas.
+Gestión de Películas: Permite al administrador añadir nuevas películas y asociarlas con horarios.
+Gestión de Horarios: Los horarios se pueden crear y modificar según la disponibilidad de las salas y películas.
+Reservas de Butacas: Los usuarios pueden realizar reservas de butacas a través de la API, asegurando que solo se puedan reservar asientos disponibles.
+## Notas Técnicas:
+Asegúrate de tener MongoDB corriendo localmente o utilizar un servicio en la nube como MongoDB Atlas.
+Para depurar y probar las rutas, puedes utilizar herramientas como Postman.
+
+
+
