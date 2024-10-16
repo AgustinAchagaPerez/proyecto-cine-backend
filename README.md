@@ -82,6 +82,8 @@ Reservas de Butacas: Los usuarios pueden realizar reservas de butacas a través 
 ## Notas Técnicas:
 Asegúrate de tener MongoDB corriendo localmente o utilizar un servicio en la nube como MongoDB Atlas.
 Para depurar y probar las rutas, puedes utilizar herramientas como Postman.
+## Contribuciones:
+Si deseas contribuir a este proyecto, por favor haz un fork del repositorio y envía un pull request.
 
 
 
