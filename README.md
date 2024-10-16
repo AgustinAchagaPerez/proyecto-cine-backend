@@ -77,6 +77,8 @@ npm start
 Una vez realizados los pasos anteriores,se requiere también lo siguiente:
 tener una Base de Datos en MongoDB, obtener el string de conexión de la misma.
 crear un archivo .env en el cual se va a ingresar el string de conexión de la base de datos MongoDB, como asi tambien el puerto en el que va a correr la misma desde el localhost (tu computadora)
+Una vez todo esto creado, y finalizada la construccion del server.js, habiendo instalado node (npm i node), para inicializar el mismo haces lo siguiente:
+Abrir la consola: terminal > new terminal. Una vez dentro de la misma, escribes: node server.js. En caso de que todo funcione con normalidad, te aparece el mensaje comunicando dicha cuestión. 
 
 ## Explicación del Flujo
 Gestión de Cines: El administrador puede agregar, editar o eliminar cines a través de las rutas definidas.
