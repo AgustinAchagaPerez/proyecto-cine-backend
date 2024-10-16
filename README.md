@@ -82,6 +82,83 @@ crear un archivo .env en el cual se va a ingresar el string de conexión de la b
 Una vez todo esto creado, y finalizada la construccion del server.js, habiendo instalado node (npm i node), para inicializar el mismo haces lo siguiente:
 Abrir la consola: terminal > new terminal. Una vez dentro de la misma, escribes: node server.js. En caso de que todo funcione con normalidad, te aparece el mensaje comunicando dicha cuestión. 
 
+Dentro del archivo server.js, se encuentran los "CRUD" es un conjunto de cuatro operaciones básicas que se realizan en una base de datos o en cualquier aplicación donde gestionamos información. Estas cuatro operaciones son Crear, Leer, Actualizar y Eliminar (del inglés: Create, Read, Update, Delete). En palabras más sensillas, las vamos a explicar a continuaci:
+1. Crear (Create):
+Qué significa: Es agregar nuevos datos o información a la aplicación o base de datos.
+Ejemplo en la vida real: Cuando te registras en una página web, estás creando un "usuario". La información como tu nombre, correo y contraseña se guarda en la base de datos.
+En el proyecto: Cuando un nuevo usuario se registra, su información se guarda en la base de datos. En el código, la operación de "Crear" se realiza mediante una petición HTTP de tipo POST.
+Ejemplo:
+app.get('/cines', async (req, res) => {
+  try {
+    const cines = await Cine.find().populate('salas');  // Obtiene cines con las salas asociadas
+    res.json(cines);  // Envía los cines encontrados
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener los cines', error });
+  }
+});
+Obtiene todos los cines desde la base de datos.
+Devuelve una lista de cines al frontend.
+
+2. Leer (Read):
+Qué significa: Es consultar o ver los datos que ya existen en la base de datos o en la aplicación.
+Ejemplo en la vida real: Cuando inicias sesión en tu cuenta de correo electrónico y ves tus mensajes, estás leyendo la información guardada.
+En el proyecto: El sistema puede mostrar una lista de usuarios ya registrados. Esto se hace con una petición HTTP de tipo GET que obtiene los datos de la base de datos.
+
+Ejemplo:
+app.get('/cines/:id', async (req, res) => {
+  try {
+    const cine = await Cine.findById(req.params.id).populate('salas');  // Busca cine por ID
+    if (!cine) return res.status(404).json({ message: 'Cine no encontrado' });
+    res.json(cine);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener cine', error });
+  }
+});
+Busca un cine por su ID y lo devuelve si es encontrado.
+
+3. Actualizar (Update):
+Qué significa: Es modificar o cambiar la información que ya está en la base de datos.
+Ejemplo en la vida real: Cuando editas tu perfil de redes sociales y cambias tu foto o nombre, estás actualizando tus datos.
+En el proyecto: Un usuario puede actualizar su información, como su nombre o email. Esto se hace con una petición HTTP de tipo PUT o PATCH, que permite modificar los datos existentes en la base de datos.
+Ejemplo:
+Actualizar un cine por ID (PUT)
+Este método permite actualizar un cine.
+app.put('/cines/:id', async (req, res) => {
+  try {
+    const cineActualizado = await Cine.findByIdAndUpdate(req.params.id, req.body, { new: true });  // Actualiza el cine
+    if (!cineActualizado) return res.status(404).json({ message: 'Cine no encontrado' });
+    res.json(cineActualizado);  // Devuelve el cine actualizado
+  } catch (error) {
+    res.status(400).json({ message: 'Error al actualizar el cine', error });
+  }
+});
+Actualiza un cine según el ID con los datos enviados en el req.body.
+
+5. Eliminar (Delete):
+Qué significa: Es borrar o eliminar datos que ya existen en la base de datos.
+Ejemplo en la vida real: Si decides eliminar una cuenta de alguna aplicación, esa información desaparece de la base de datos.
+En el proyecto: Si decides eliminar a un usuario, su información se elimina de la base de datos. Esto se hace con una petición HTTP de tipo DELETE.
+
+Ejemplo:
+Eliminar un cine por ID (DELETE)
+Este método permite eliminar un cine.
+app.delete('/cines/:id', async (req, res) => {
+  try {
+    const cine = await Cine.findById(req.params.id);
+    if (!cine) {
+      return res.status(404).json({ message: 'Cine no encontrado' });
+    }
+    await Sala.deleteMany({ cine: cine._id });  // Elimina las salas del cine
+    await Cine.findByIdAndDelete(req.params.id);  // Elimina el cine
+    res.status(200).send({ message: 'Cine eliminado con éxito' });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+Busca el cine por su ID.
+Si lo encuentra, elimina el cine y las salas asociadas.
+
+
 ## Explicación del Flujo
 Gestión de Cines: El administrador puede agregar, editar o eliminar cines a través de las rutas definidas.
 Gestión de Películas: Permite al administrador añadir nuevas películas y asociarlas con horarios.
