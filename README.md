@@ -51,9 +51,7 @@ Rutas para manejar las operaciones sobre reservas:
 GET /reservas: Obtener la lista de reservas.
 POST /reservas: Crear una nueva reserva.
 DELETE /reservas/:id: Eliminar una reserva.
-## Middleware:
-ErrorHandler.js: Middleware para manejar errores de manera centralizada y enviar respuestas adecuadas al cliente.
-Validation.js: Middleware para validar los datos de entrada en las solicitudes.
+
 ## Tecnologías Utilizadas:
 Node.js: Entorno de ejecución para JavaScript del lado del servidor.
 Express.js: Framework para construir aplicaciones web en Node.js.
