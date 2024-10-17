@@ -1,8 +1,7 @@
-# proyecto-cine-backend
-## Descripción:
+# proyecto-cine-backend:
 Trabajo Práctico en conjunto, con Front de otro repositorio complementario (Linnk del Front:https://github.com/RicardoAlvarez1980/proyecto-cine-frontend)
 Integrantes: Achaga Pérez, Agustín - Alvarez, Ricardo.
-
+## Descripción:
 Este proyecto es la API backend para un sistema de reserva de butacas en cines. Permite gestionar cines, películas, horarios y reservas a través de operaciones CRUD (Crear, Leer, Actualizar y Eliminar). El backend está construido con Node.js y Express, y utiliza MongoDB como base de datos.
 ## Estructura del Proyecto:
 El proyecto está organizado en varias carpetas y archivos, cada uno con una función específica:
