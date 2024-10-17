@@ -10,7 +10,7 @@ Estructura de Carpetas:
 /routes: Define las rutas de la API para manejar las solicitudes HTTP.
 /controllers: Contiene la lógica de negocio que maneja las operaciones de las rutas.
 /config: Incluye la configuración de la conexión a la base de datos y otras configuraciones necesarias.
-/middleware: Contiene middlewares personalizados para manejar errores y validar solicitudes.
+
 ## Modelos de Datos:
 Cinema.js
 Representa un cine en la base de datos.
@@ -158,6 +158,26 @@ app.delete('/cines/:id', async (req, res) => {
 });
 Busca el cine por su ID.
 Si lo encuentra, elimina el cine y las salas asociadas.
+
+
+## Explicación del Flujo
+Gestión de Cines: El administrador puede agregar, editar o eliminar cines a través de las rutas definidas.
+Gestión de Películas: Permite al administrador añadir nuevas películas y asociarlas con horarios.
+Gestión de Horarios: Los horarios se pueden crear y modificar según la disponibilidad de las salas y películas.
+Reservas de Butacas: Los usuarios pueden realizar reservas de butacas a través de la API, asegurando que solo se puedan reservar asientos disponibles.
+## Notas Técnicas:
+Asegúrate de tener MongoDB corriendo localmente o utilizar un servicio en la nube como MongoDB Atlas.
+Para depurar y probar las rutas, puedes utilizar herramientas como Postman.
+## Mejoras a futuro:
+Reservas de Butacas: Los usuarios podrán realizar reservas de butacas a través de la API, asegurando que solo se puedan reservar asientos disponibles.
+Creacion de un archivo de reservas pensado de la siguiente manera:
+Reservation.js:
+Representa una reserva de butacas.
+Incluye información sobre el usuario, las butacas seleccionadas y el horario reservado.
+## Contribuciones:
+Si deseas contribuir a este proyecto, por favor haz un fork del repositorio y envía un pull request.
+
+
 
 
 ## Explicación del Flujo
