@@ -10,7 +10,7 @@ Estructura de Carpetas:
 /routes: Define las rutas de la API para manejar las solicitudes HTTP.
 /controllers: Contiene la lógica de negocio que maneja las operaciones de las rutas.
 /config: Incluye la configuración de la conexión a la base de datos y otras configuraciones necesarias.
-/middleware: Contiene middlewares personalizados para manejar errores y validar solicitudes.
+
 ## Modelos de Datos:
 Cinema.js
 Representa un cine en la base de datos.
