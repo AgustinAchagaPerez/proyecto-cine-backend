@@ -491,6 +491,19 @@ app.get('/cines-con-salas-peliculas-y-horarios', async (req, res) => {
   }
 });
 
+app.get('/salas/:salaId/pelicula/:peliculaId', async (req, res) => {
+  const { salaId, peliculaId } = req.params;
+  try {
+    const sala = await Sala.findById(salaId).populate('pelicula');
+    if (sala && sala.pelicula && sala.pelicula._id.toString() === peliculaId) {
+      return res.json(sala.pelicula);
+    }
+    res.status(404).json({ message: 'Película no encontrada en la sala' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error en el servidor', error });
+  }
+});
+
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
