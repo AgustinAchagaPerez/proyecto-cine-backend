@@ -193,4 +193,5 @@ Reservation.js:
 Representa una reserva de butacas.
 Incluye información sobre el usuario, las butacas seleccionadas y el horario reservado.
 ## Contribuciones:
-Si deseas contribuir a este proyecto, por favor haz un fork del repositorio y envía un pull request.
+Si deseas contribuir a este proyecto, por favor haz un fork del repositorio y envía un pull request.#   p r o y e c t o - c i n e - b a c k e n d  
+ 
